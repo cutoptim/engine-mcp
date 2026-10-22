@@ -1,0 +1,38 @@
+# List @cutoptim/mcp in the official MCP Registry as io.github.cutoptim/engine (server.json), from the mirror repo
+# cutoptim/engine-mcp.
+#
+# WHY GITHUB OIDC: the interactive `mcp-publisher login github` grants org namespaces only through the "MCP Registry
+# Login" GitHub App's view of GET /user/memberships/orgs, and that app cannot be installed on the cutoptim org — so it
+# only ever granted io.github.monooleate/* (2026-10-22). A workflow in a cutoptim-owned repository proves the namespace
+# by itself: `login github-oidc` → io.github.cutoptim/*. No token, no key, no DNS record.
+#
+# When: after every successful `release` run (the registry checks that the npm package version exists and carries
+# mcpName = io.github.cutoptim/engine, so it must run AFTER npm publish), and by hand (workflow_dispatch) for the
+# first listing or a re-publish.
+name: mcp-registry
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [release]
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: server.json version must equal package.json version
+        run: |
+          S=$(node -p "require('./server.json').version"); P=$(node -p "require('./package.json').version")
+          test "$S" = "$P" || { echo "server.json $S != package.json $P"; exit 1; }
+      - name: Install mcp-publisher (pinned)
+        run: curl -fsSL https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz | tar xz mcp-publisher
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish
