@@ -1,0 +1,45 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.cutoptim/engine",
+  "title": "CutOptim Engine",
+  "description": "Cutting optimization: 2D panels, 1D bars, timber and true-shape nesting via the CutOptim API.",
+  "websiteUrl": "https://cutoptim.com/engine/reference/guides/mcp",
+  "repository": {
+    "url": "https://github.com/cutoptim/engine-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.cutoptim.com/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer followed by your CutOptim API key (co_live_…, co_test_…, or the public demo key). Not needed for validate_* and tools/list.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@cutoptim/mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "CUTOPTIM_API_KEY",
+          "description": "Your CutOptim API key (co_live_…, co_test_…, or the public demo key). Not needed for validate_*.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

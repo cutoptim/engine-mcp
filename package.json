@@ -1,0 +1,61 @@
+{
+  "name": "@cutoptim/mcp",
+  "version": "0.1.0",
+  "description": "CutOptim MCP server (stdio): cutting optimization tools for AI assistants — 2D panels, 1D bars, timber and true-shape nesting via the CutOptim Engine API.",
+  "license": "MIT",
+  "author": "CutOptim <support@cutoptim.com>",
+  "homepage": "https://cutoptim.com/engine/reference/guides/mcp",
+  "mcpName": "io.github.cutoptim/engine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cutoptim/engine-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cutoptim/engine-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model context protocol",
+    "cutoptim",
+    "cutting optimization",
+    "cut list",
+    "nesting"
+  ],
+  "type": "module",
+  "bin": {
+    "cutoptim-mcp": "dist/cli.js"
+  },
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@cutoptim/engine": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.32.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.6.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

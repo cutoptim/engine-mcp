@@ -1,0 +1,23 @@
+# CI for the mirror repo cutoptim/engine-mcp (published from the CutOptim monorepo, sdks/mcp).
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - name: stdio handshake + tool list
+        run: node tests/stdio-smoke.mjs
