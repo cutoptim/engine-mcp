@@ -631,6 +631,12 @@ export const TOOLS: ToolDef[] = [
                   "stage": {
                     "type": "integer",
                     "minimum": 1
+                  },
+                  "angle": {
+                    "type": "number"
+                  },
+                  "bevel": {
+                    "type": "number"
                   }
                 }
               }
@@ -1143,6 +1149,77 @@ export const TOOLS: ToolDef[] = [
               "meta": {
                 "type": "object",
                 "description": "Opaque JSON object (any keys) echoed back VERBATIM on the matching output (a part's meta on every placed piece of it; a stock row's meta on every sheet/rod cut from it). Attach ERP article numbers, order-line ids, customer refs to reconcile the cut plan with your system. Never parsed, never affects placement. Part meta follows its request row: the meta of each row lands on exactly its qty of placed pieces, even when rows share a name; stock meta by stock-row order."
+              },
+              "ends": {
+                "type": "object",
+                "description": "The angled ends of a part, read only with `options.mitrePairing`. Two parts of one section whose facing ends lie in one plane (after a turn `flip` allows) can be cut with ONE saw cut between them: the triangle between the long and the short point is not wasted. Without `mitrePairing` the ends are not used (a warning says so) and the part packs as its `length`.",
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "required": [
+                      "angle"
+                    ],
+                    "description": "One end cut of a part, in degrees from square (0 = a square end), signed. The part is measured long point to long point (`length` is its overall length). A part whose two end cuts would cross inside its section (shorter than its leads) cannot be made: a 400 `invalid_request` naming `parts[i].ends` says how long it must at least be.",
+                    "properties": {
+                      "angle": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "description": "The face angle: the mitre or plumb cut as seen on the `depth` side (wood: on `sh` as entered)."
+                      },
+                      "bevel": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "default": 0,
+                        "description": "The edge angle: the bevel as seen on the `thickness` side (wood: on `sw` as entered). A compound cut has both."
+                      }
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "required": [
+                      "angle"
+                    ],
+                    "description": "One end cut of a part, in degrees from square (0 = a square end), signed. The part is measured long point to long point (`length` is its overall length). A part whose two end cuts would cross inside its section (shorter than its leads) cannot be made: a 400 `invalid_request` naming `parts[i].ends` says how long it must at least be.",
+                    "properties": {
+                      "angle": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "description": "The face angle: the mitre or plumb cut as seen on the `depth` side (wood: on `sh` as entered)."
+                      },
+                      "bevel": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "default": 0,
+                        "description": "The edge angle: the bevel as seen on the `thickness` side (wood: on `sw` as entered). A compound cut has both."
+                      }
+                    }
+                  }
+                }
+              },
+              "flip": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "face",
+                  "edge",
+                  "any"
+                ],
+                "default": "none",
+                "description": "Mitre pairing only: which 180° turns of the part on the bar are allowed, so its angled end can meet a neighbour's. `none` (default — a profiled moulding or one-sided stock), `face` (end for end, the crown or top edge stays up — roof members), `edge` (end for end over the edge — flat stock, frames), `any`."
+              },
+              "depth": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "Mitre pairing only: the side of the bar the `angle` of `ends` is seen on. Required with `ends` (a 1D part has no cross-section to take it from). Unit-agnostic: pick one unit (mm, inch, …) for every length in the request and every length in the response is in that same unit. Nothing is converted server-side."
+              },
+              "thickness": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "Mitre pairing only: the other side, the one the `bevel` is seen on. Required with `ends`. Unit-agnostic: pick one unit (mm, inch, …) for every length in the request and every length in the response is in that same unit. Nothing is converted server-side."
               }
             }
           }
@@ -1236,6 +1313,11 @@ export const TOOLS: ToolDef[] = [
               "minimum": 0,
               "description": "Output filter: report a leftover only if it is at least this long.",
               "default": 0
+            },
+            "mitrePairing": {
+              "type": "boolean",
+              "default": false,
+              "description": "Pair parts of one section whose facing ends (`parts[].ends`) can share ONE saw cut. Off by default: a request without it is solved exactly as before. On, a plan with pairs is returned only when it ranks strictly better than the unpaired plan by the packer's own ranking (parts placed first, then material — or price with `minimizeCost`); otherwise the unpaired plan comes back. Pairs only, no chains of three or more."
             }
           }
         },
@@ -1343,6 +1425,37 @@ export const TOOLS: ToolDef[] = [
                     },
                     "meta": {
                       "type": "object"
+                    },
+                    "sharedCut": {
+                      "type": "object",
+                      "required": [
+                        "angle",
+                        "bevel",
+                        "kerfAlongAxis",
+                        "lead"
+                      ],
+                      "properties": {
+                        "angle": {
+                          "type": "number"
+                        },
+                        "bevel": {
+                          "type": "number"
+                        },
+                        "kerfAlongAxis": {
+                          "type": "number"
+                        },
+                        "lead": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "flipped": {
+                      "type": "string",
+                      "enum": [
+                        "face",
+                        "edge",
+                        "roll"
+                      ]
                     }
                   }
                 }
@@ -1394,6 +1507,9 @@ export const TOOLS: ToolDef[] = [
             },
             "toleranceAcceptedCount": {
               "type": "integer"
+            },
+            "sharedCuts": {
+              "type": "integer"
             }
           }
         },
@@ -1438,6 +1554,12 @@ export const TOOLS: ToolDef[] = [
               "stage": {
                 "type": "integer",
                 "minimum": 1
+              },
+              "angle": {
+                "type": "number"
+              },
+              "bevel": {
+                "type": "number"
               }
             }
           }
@@ -1636,6 +1758,67 @@ export const TOOLS: ToolDef[] = [
               "meta": {
                 "type": "object",
                 "description": "Opaque JSON object (any keys) echoed back VERBATIM on the matching output (a part's meta on every placed piece of it; a stock row's meta on every sheet/rod cut from it). Attach ERP article numbers, order-line ids, customer refs to reconcile the cut plan with your system. Never parsed, never affects placement. Part meta follows its request row: the meta of each row lands on exactly its qty of placed pieces, even when rows share a name; stock meta by stock-row order."
+              },
+              "ends": {
+                "type": "object",
+                "description": "Angled ends (mitre pairing). The `angle` is seen on `sh` AS ENTERED and the `bevel` on `sw`, so send the section the way the angles were measured.",
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "required": [
+                      "angle"
+                    ],
+                    "description": "One end cut of a part, in degrees from square (0 = a square end), signed. The part is measured long point to long point (`length` is its overall length). A part whose two end cuts would cross inside its section (shorter than its leads) cannot be made: a 400 `invalid_request` naming `parts[i].ends` says how long it must at least be.",
+                    "properties": {
+                      "angle": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "description": "The face angle: the mitre or plumb cut as seen on the `depth` side (wood: on `sh` as entered)."
+                      },
+                      "bevel": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "default": 0,
+                        "description": "The edge angle: the bevel as seen on the `thickness` side (wood: on `sw` as entered). A compound cut has both."
+                      }
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "required": [
+                      "angle"
+                    ],
+                    "description": "One end cut of a part, in degrees from square (0 = a square end), signed. The part is measured long point to long point (`length` is its overall length). A part whose two end cuts would cross inside its section (shorter than its leads) cannot be made: a 400 `invalid_request` naming `parts[i].ends` says how long it must at least be.",
+                    "properties": {
+                      "angle": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "description": "The face angle: the mitre or plumb cut as seen on the `depth` side (wood: on `sh` as entered)."
+                      },
+                      "bevel": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "default": 0,
+                        "description": "The edge angle: the bevel as seen on the `thickness` side (wood: on `sw` as entered). A compound cut has both."
+                      }
+                    }
+                  }
+                }
+              },
+              "flip": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "face",
+                  "edge",
+                  "any"
+                ],
+                "default": "none",
+                "description": "Mitre pairing only: which 180° turns of the part on the bar are allowed, so its angled end can meet a neighbour's. `none` (default — a profiled moulding or one-sided stock), `face` (end for end, the crown or top edge stays up — roof members), `edge` (end for end over the edge — flat stock, frames), `any`."
               }
             }
           }
@@ -1747,6 +1930,11 @@ export const TOOLS: ToolDef[] = [
               "minimum": 0,
               "description": "Output filter: report a leftover only if it is at least this long.",
               "default": 0
+            },
+            "mitrePairing": {
+              "type": "boolean",
+              "default": false,
+              "description": "Pair parts of one section whose facing ends (`parts[].ends`) can share ONE saw cut. Off by default: a request without it is solved exactly as before. On, a plan with pairs is returned only when it ranks strictly better than the unpaired plan by the packer's own ranking (parts placed first, then material — or price with `minimizeCost`); otherwise the unpaired plan comes back. Pairs only, no chains of three or more."
             }
           }
         },
@@ -1887,6 +2075,37 @@ export const TOOLS: ToolDef[] = [
                           },
                           "meta": {
                             "type": "object"
+                          },
+                          "sharedCut": {
+                            "type": "object",
+                            "required": [
+                              "angle",
+                              "bevel",
+                              "kerfAlongAxis",
+                              "lead"
+                            ],
+                            "properties": {
+                              "angle": {
+                                "type": "number"
+                              },
+                              "bevel": {
+                                "type": "number"
+                              },
+                              "kerfAlongAxis": {
+                                "type": "number"
+                              },
+                              "lead": {
+                                "type": "number"
+                              }
+                            }
+                          },
+                          "flipped": {
+                            "type": "string",
+                            "enum": [
+                              "face",
+                              "edge",
+                              "roll"
+                            ]
                           }
                         }
                       }
@@ -2052,6 +2271,9 @@ export const TOOLS: ToolDef[] = [
             },
             "toleranceAcceptedCount": {
               "type": "integer"
+            },
+            "sharedCuts": {
+              "type": "integer"
             }
           }
         },
@@ -2098,6 +2320,12 @@ export const TOOLS: ToolDef[] = [
                   "stage": {
                     "type": "integer",
                     "minimum": 1
+                  },
+                  "angle": {
+                    "type": "number"
+                  },
+                  "bevel": {
+                    "type": "number"
                   }
                 }
               }
@@ -3384,6 +3612,67 @@ export const TOOLS: ToolDef[] = [
               },
               "meta": {
                 "type": "object"
+              },
+              "ends": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "required": [
+                      "angle"
+                    ],
+                    "properties": {
+                      "angle": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90
+                      },
+                      "bevel": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "default": 0
+                      }
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "required": [
+                      "angle"
+                    ],
+                    "properties": {
+                      "angle": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90
+                      },
+                      "bevel": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "default": 0
+                      }
+                    }
+                  }
+                }
+              },
+              "flip": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "face",
+                  "edge",
+                  "any"
+                ],
+                "default": "none"
+              },
+              "depth": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "thickness": {
+                "type": "number",
+                "exclusiveMinimum": 0
               }
             }
           }
@@ -3462,6 +3751,10 @@ export const TOOLS: ToolDef[] = [
               "type": "number",
               "minimum": 0,
               "default": 0
+            },
+            "mitrePairing": {
+              "type": "boolean",
+              "default": false
             }
           }
         },
@@ -3624,6 +3917,59 @@ export const TOOLS: ToolDef[] = [
               },
               "meta": {
                 "type": "object"
+              },
+              "ends": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "required": [
+                      "angle"
+                    ],
+                    "properties": {
+                      "angle": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90
+                      },
+                      "bevel": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "default": 0
+                      }
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "required": [
+                      "angle"
+                    ],
+                    "properties": {
+                      "angle": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90
+                      },
+                      "bevel": {
+                        "type": "number",
+                        "exclusiveMinimum": -90,
+                        "exclusiveMaximum": 90,
+                        "default": 0
+                      }
+                    }
+                  }
+                }
+              },
+              "flip": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "face",
+                  "edge",
+                  "any"
+                ],
+                "default": "none"
               }
             }
           }
@@ -3716,6 +4062,10 @@ export const TOOLS: ToolDef[] = [
               "type": "number",
               "minimum": 0,
               "default": 0
+            },
+            "mitrePairing": {
+              "type": "boolean",
+              "default": false
             }
           }
         },
@@ -4476,6 +4826,12 @@ export const TOOLS: ToolDef[] = [
                       "stage": {
                         "type": "integer",
                         "minimum": 1
+                      },
+                      "angle": {
+                        "type": "number"
+                      },
+                      "bevel": {
+                        "type": "number"
                       }
                     }
                   }
