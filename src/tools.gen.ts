@@ -257,6 +257,138 @@ export const TOOLS: ToolDef[] = [
             "setOutlines": {
               "default": true,
               "description": "A boolean. With `matchedSets` and the `svg` export: draw the dashed frame and the \"SET A\" badge of every set instance, in ONE separate group (`<g id=\"matched-sets\" data-role=\"annotation\">`) a laser or CNC import can drop in one move. `false` leaves that group out (the position codes in the part labels stay). Read only in a request with sets — there a value other than `true`, `false` or `null` is a 400; without sets the field is ignored, whatever it holds."
+            },
+            "labels": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Label settings — the same settings as the Label format panel of the CutOptim app, under these names. They shape `labelsPdf` and add `piece`, `of`, `sheetNo`, `stockRow` and `sheetMeta` to every `labels[]` entry. Every field is optional; `{}` is valid and only adds those fields. Absent: the label PDF is the A4 sheet and `labels[]` is exactly as without this object. Validated STRICTLY, unlike the rest of `options`: an unknown key, a wrong type or a value out of range is a 400 `invalid_request` with `details.path`, before any call is counted (also on `/v1/validate/2d`). `null` for a field means the field is absent. Sent without `include` `labels` or `labelsPdf`, it changes nothing and the answer says so in `warnings`. 2D only.",
+              "properties": {
+                "format": {
+                  "type": "string",
+                  "enum": [
+                    "sheet",
+                    "roll",
+                    "apli-03056",
+                    "brother-dk-11201"
+                  ],
+                  "default": "sheet",
+                  "description": "`sheet` = the A4 sheet of labels (3 columns); `roll` = one label per page, `width` × `height` mm, for a label printer; `apli-03056` = APLI 03056 sheets (24 labels of 64.6 × 33.9 mm on A4, 3 × 8); `brother-dk-11201` = Brother DK-11201 roll labels (29 × 90 mm, one per page)."
+                },
+                "width": {
+                  "type": "number",
+                  "minimum": 20,
+                  "maximum": 300,
+                  "default": 100,
+                  "description": "Label width in mm, `roll` only."
+                },
+                "height": {
+                  "type": "number",
+                  "minimum": 15,
+                  "maximum": 300,
+                  "default": 40,
+                  "description": "Label height in mm, `roll` only."
+                },
+                "offset": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "Printer offset in mm: moves everything printed on the label right (`x`) and down (`y`); negative values move it back. Applied rounded to 0.1 mm.",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": -20,
+                      "maximum": 20,
+                      "default": 0
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": -20,
+                      "maximum": 20,
+                      "default": 0
+                    }
+                  }
+                },
+                "dimSize": {
+                  "type": "string",
+                  "enum": [
+                    "normal",
+                    "large",
+                    "xl"
+                  ],
+                  "default": "normal",
+                  "description": "Size of the dimension text on the label."
+                },
+                "partNo": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Print the part number, top left and largest: the 1-based row of the FIRST `parts` row with that name (rows sharing a name share a number; with unique names it equals `labels[].partNo`)."
+                },
+                "order": {
+                  "type": "string",
+                  "enum": [
+                    "input",
+                    "cut"
+                  ],
+                  "default": "input",
+                  "description": "`input` = labels in `parts` order; `cut` = sheet by sheet, in the order the saw plan frees the pieces."
+                },
+                "stages": {
+                  "type": "array",
+                  "maxItems": 6,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 6
+                  },
+                  "description": "Work stages printed as a row of circles to tick off by pen; empty or absent = no row. Each entry is a built-in key — `rc` (rough cut), `c2s` (cut to size), `eb` (edge banded, printed only on a banded part), `s` (sanded), `d` (drilled, not printed yet) — or free text of at most 6 characters, printed as sent (keys are lower case: `RC` is free text). Spaces are trimmed; printable characters only."
+                },
+                "stageWords": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "Your own word for a built-in stage key, at most 6 characters; empty or absent = the English abbreviation (RC, C2S, EB, S, D).",
+                  "properties": {
+                    "rc": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "c2s": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "eb": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "s": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "d": {
+                      "type": "string",
+                      "maxLength": 6
+                    }
+                  }
+                },
+                "factoryEdges": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Mark FE on the edges of a piece that lie on a sheet edge with no `trim` on that side (the board's factory edge)."
+                },
+                "hiddenFaceHint": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Print the \"hidden side\" mark."
+                },
+                "parts": {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 999999
+                  },
+                  "description": "Print only the labels of these part numbers (the numbers `partNo` prints), e.g. to re-print after sanding. Empty or absent = all."
+                }
+              }
             }
           }
         },
@@ -1005,6 +1137,25 @@ export const TOOLS: ToolDef[] = [
                     }
                   },
                   "meta": {
+                    "type": "object"
+                  },
+                  "piece": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "of": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "sheetNo": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "stockRow": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "sheetMeta": {
                     "type": "object"
                   }
                 }
@@ -3378,6 +3529,125 @@ export const TOOLS: ToolDef[] = [
             },
             "setOutlines": {
               "default": true
+            },
+            "labels": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "format": {
+                  "type": "string",
+                  "enum": [
+                    "sheet",
+                    "roll",
+                    "apli-03056",
+                    "brother-dk-11201"
+                  ],
+                  "default": "sheet"
+                },
+                "width": {
+                  "type": "number",
+                  "minimum": 20,
+                  "maximum": 300,
+                  "default": 100
+                },
+                "height": {
+                  "type": "number",
+                  "minimum": 15,
+                  "maximum": 300,
+                  "default": 40
+                },
+                "offset": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": -20,
+                      "maximum": 20,
+                      "default": 0
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": -20,
+                      "maximum": 20,
+                      "default": 0
+                    }
+                  }
+                },
+                "dimSize": {
+                  "type": "string",
+                  "enum": [
+                    "normal",
+                    "large",
+                    "xl"
+                  ],
+                  "default": "normal"
+                },
+                "partNo": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "order": {
+                  "type": "string",
+                  "enum": [
+                    "input",
+                    "cut"
+                  ],
+                  "default": "input"
+                },
+                "stages": {
+                  "type": "array",
+                  "maxItems": 6,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 6
+                  }
+                },
+                "stageWords": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "rc": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "c2s": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "eb": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "s": {
+                      "type": "string",
+                      "maxLength": 6
+                    },
+                    "d": {
+                      "type": "string",
+                      "maxLength": 6
+                    }
+                  }
+                },
+                "factoryEdges": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "hiddenFaceHint": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "parts": {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 999999
+                  }
+                }
+              }
             }
           }
         },
@@ -5200,6 +5470,25 @@ export const TOOLS: ToolDef[] = [
                         }
                       },
                       "meta": {
+                        "type": "object"
+                      },
+                      "piece": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "of": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "sheetNo": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "stockRow": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "sheetMeta": {
                         "type": "object"
                       }
                     }
