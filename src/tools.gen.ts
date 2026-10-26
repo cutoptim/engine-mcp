@@ -105,6 +105,23 @@ export const TOOLS: ToolDef[] = [
               },
               "id": {
                 "description": "The row's id, so a `matchedSets` layout can name it. Any JSON value is accepted here. Only an id a set REFERS TO is checked: it must be a non-empty string of printable characters, at most 64 long, or a safe integer (`7` and `\"7\"` are the same id), and it must be on exactly one part. Every other id is ignored, whatever it holds (a float, an object, null, repeated, long, empty): always without a non-empty `matchedSets`, and on the rows no set names with one — so an ERP article number is safe to send."
+              },
+              "qr": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300,
+                "description": "QR payload template for every copy of this row: returned resolved in `labels[].qr` and printed as a QR code (error correction level M) on each of the row's labels in `labelsPdf`. Exactly two tokens are filled in: `{piece}` (the copy, 1-based — the `k` of the `k/n` printed on the label) and `{of}` (the row's `qty`); any other `{…}` stays as sent. At most 300 UTF-8 bytes once filled in, printable characters only (no control characters); not together with `qrs`. A wrong value is a 400 `invalid_request` naming the field, before any quota is used. Metadata only: it never changes the plan or `planHash`. On a small label format a long payload can print below 0.4 mm per module, and `warnings` then says so. 2D only."
+              },
+              "qrs": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 2000,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "description": "One QR payload per copy of this row, used verbatim: copy `k` (the `k/n` printed on its label) gets entry `k`, in `labels[].qr` and on `labelsPdf`. Exactly `qty` entries (`qty` defaults to 1), each 1 to 300 UTF-8 bytes of printable characters; not together with `qr`. A wrong value is a 400 `invalid_request` naming the field, before any quota is used. 2D only."
               }
             }
           }
@@ -1157,6 +1174,9 @@ export const TOOLS: ToolDef[] = [
                   },
                   "sheetMeta": {
                     "type": "object"
+                  },
+                  "qr": {
+                    "type": "string"
                   }
                 }
               }
@@ -3400,7 +3420,22 @@ export const TOOLS: ToolDef[] = [
               "meta": {
                 "type": "object"
               },
-              "id": {}
+              "id": {},
+              "qr": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "qrs": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 2000,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                }
+              }
             }
           }
         },
@@ -5490,6 +5525,9 @@ export const TOOLS: ToolDef[] = [
                       },
                       "sheetMeta": {
                         "type": "object"
+                      },
+                      "qr": {
+                        "type": "string"
                       }
                     }
                   }
