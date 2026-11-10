@@ -4,11 +4,15 @@
   "title": "CutOptim Engine",
   "description": "Cutting optimization: 2D panels, 1D bars, timber and true-shape nesting via the CutOptim API.",
   "websiteUrl": "https://cutoptim.com/engine/reference/guides/mcp",
+  "icons": [
+    { "src": "https://cutoptim.com/logo-square.png", "mimeType": "image/png", "sizes": ["512x512"] },
+    { "src": "https://cutoptim.com/logo-square.svg", "mimeType": "image/svg+xml", "sizes": ["any"] }
+  ],
   "repository": {
     "url": "https://github.com/cutoptim/engine-mcp",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "remotes": [
     {
       "type": "streamable-http",
@@ -28,7 +32,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@cutoptim/mcp",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "transport": {
         "type": "stdio"
       },

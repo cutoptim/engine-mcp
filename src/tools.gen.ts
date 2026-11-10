@@ -124,7 +124,8 @@ export const TOOLS: ToolDef[] = [
                 "description": "One QR payload per copy of this row, used verbatim: copy `k` (the `k/n` printed on its label) gets entry `k`, in `labels[].qr` and on `labelsPdf`. Exactly `qty` entries (`qty` defaults to 1), each 1 to 300 UTF-8 bytes of printable characters; not together with `qr`. A wrong value is a 400 `invalid_request` naming the field, before any quota is used. 2D only."
               }
             }
-          }
+          },
+          "description": "The rectangular parts to cut, one row per part type (`w`, `h`, optional `qty`, `name`, grain, edge banding)."
         },
         "stock": {
           "type": "array",
@@ -180,7 +181,8 @@ export const TOOLS: ToolDef[] = [
                 "description": "Opaque JSON object (any keys) echoed back VERBATIM on the matching output (a part's meta on every placed piece of it; a stock row's meta on every sheet/rod cut from it). Attach ERP article numbers, order-line ids, customer refs to reconcile the cut plan with your system. Never parsed, never affects placement. Part meta follows its request row: the meta of each row lands on exactly its qty of placed pieces, even when rows share a name; stock meta by stock-row order."
               }
             }
-          }
+          },
+          "description": "The sheet sizes to cut from, one row per size (`w`, `h`, optional `qty`, `price`)."
         },
         "options": {
           "type": "object",
@@ -314,13 +316,15 @@ export const TOOLS: ToolDef[] = [
                       "type": "number",
                       "minimum": -20,
                       "maximum": 20,
-                      "default": 0
+                      "default": 0,
+                      "description": "Shift right in mm (negative = left)."
                     },
                     "y": {
                       "type": "number",
                       "minimum": -20,
                       "maximum": 20,
-                      "default": 0
+                      "default": 0,
+                      "description": "Shift down in mm (negative = up)."
                     }
                   }
                 },
@@ -365,23 +369,28 @@ export const TOOLS: ToolDef[] = [
                   "properties": {
                     "rc": {
                       "type": "string",
-                      "maxLength": 6
+                      "maxLength": 6,
+                      "description": "Your word for `rc` (rough cut); default RC."
                     },
                     "c2s": {
                       "type": "string",
-                      "maxLength": 6
+                      "maxLength": 6,
+                      "description": "Your word for `c2s` (cut to size); default C2S."
                     },
                     "eb": {
                       "type": "string",
-                      "maxLength": 6
+                      "maxLength": 6,
+                      "description": "Your word for `eb` (edge banded); default EB."
                     },
                     "s": {
                       "type": "string",
-                      "maxLength": 6
+                      "maxLength": 6,
+                      "description": "Your word for `s` (sanded); default S."
                     },
                     "d": {
                       "type": "string",
-                      "maxLength": 6
+                      "maxLength": 6,
+                      "description": "Your word for `d` (drilled); default D."
                     }
                   }
                 },
@@ -407,7 +416,8 @@ export const TOOLS: ToolDef[] = [
                 }
               }
             }
-          }
+          },
+          "description": "Kerf, trim, first-cut direction, cost and stock rules, effort and label output; every field is optional."
         },
         "engine": {
           "type": "string",
@@ -1393,7 +1403,8 @@ export const TOOLS: ToolDef[] = [
                 "description": "Mitre pairing only: the other side, the one the `bevel` is seen on. Required with `ends`. Unit-agnostic: pick one unit (mm, inch, …) for every length in the request and every length in the response is in that same unit. Nothing is converted server-side."
               }
             }
-          }
+          },
+          "description": "The lengths to cut, one row per part type (`length`, optional `qty`, `name`, mitred `ends`)."
         },
         "stock": {
           "type": "array",
@@ -1435,7 +1446,8 @@ export const TOOLS: ToolDef[] = [
                 "description": "Opaque JSON object (any keys) echoed back VERBATIM on the matching output (a part's meta on every placed piece of it; a stock row's meta on every sheet/rod cut from it). Attach ERP article numbers, order-line ids, customer refs to reconcile the cut plan with your system. Never parsed, never affects placement. Part meta follows its request row: the meta of each row lands on exactly its qty of placed pieces, even when rows share a name; stock meta by stock-row order."
               }
             }
-          }
+          },
+          "description": "The bar lengths to cut from, one row per length (`length`, optional `qty`, `price`)."
         },
         "options": {
           "type": "object",
@@ -1992,7 +2004,8 @@ export const TOOLS: ToolDef[] = [
                 "description": "Mitre pairing only: which 180° turns of the part on the bar are allowed, so its angled end can meet a neighbour's. `none` (default — a profiled moulding or one-sided stock), `face` (end for end, the crown or top edge stays up — roof members), `edge` (end for end over the edge — flat stock, frames), `any`."
               }
             }
-          }
+          },
+          "description": "The timber parts to cut, one row per part type: cross-section `sw` × `sh`, `length`, optional `qty`."
         },
         "stock": {
           "type": "array",
@@ -3437,7 +3450,8 @@ export const TOOLS: ToolDef[] = [
                 }
               }
             }
-          }
+          },
+          "description": "The rectangular parts to cut, one row per part type (`w`, `h`, optional `qty`, `name`, grain, edge banding)."
         },
         "stock": {
           "type": "array",
@@ -3485,7 +3499,8 @@ export const TOOLS: ToolDef[] = [
                 "type": "object"
               }
             }
-          }
+          },
+          "description": "The sheet sizes to cut from, one row per size (`w`, `h`, optional `qty`, `price`)."
         },
         "options": {
           "type": "object",
@@ -3684,7 +3699,8 @@ export const TOOLS: ToolDef[] = [
                 }
               }
             }
-          }
+          },
+          "description": "Kerf, trim, first-cut direction, cost and stock rules, effort and label output; every field is optional."
         },
         "engine": {
           "type": "string",
@@ -3693,7 +3709,8 @@ export const TOOLS: ToolDef[] = [
             "balanced",
             "max"
           ],
-          "default": "heuristic"
+          "default": "heuristic",
+          "description": "Which optimizer to run. `heuristic` is the guillotine multi-strategy packer: highest yield, every layout edge-to-edge saw-cuttable, always a full `cutPlan`. `balanced` is a MaxRects free-nesting packer: much faster on large jobs for a small yield cost, but its layouts are often not guillotine (`guillotineValid: false`, `cutPlan: null`), and it does not model `tolerance`, `minimizeCost`, `grainGroup`, `maxCutStages` or `minimizeRotations` — set one of those and a string in `warnings` tells you it was ignored. `max` is the ASYNCHRONOUS tree-search tier (2D only): it reaches the proven optimum on far more jobs at the cost of seconds-to-a-minute per solve, so instead of a plan it returns **202** with a `jobId` — poll `GET /v1/jobs/{id}` for the result. Still deterministic and guillotine-valid. Where the tier is not enabled on a deployment, `engine: \"max\"` fails closed with **503**. **What `max` models.** It packs ONE stock format at full sheet size with unlimited supply and a fixed 3-stage guillotine pattern. Anything that would make the returned plan physically WRONG is therefore REFUSED with **400** at submission — before a call is reserved and before you wait for the solve: a second `stock` row, `options.trim`, `options.respectStock`, any `material`, any `grainGroup`, a non-empty `matchedSets` (an empty one is fine). Options that only make the plan less tuned are accepted and listed in `warnings`: `tolerance`, `minimizeCost`, `maxCutStages` (fixed at 3), `minimizeRotations`, `firstCut`, `effort`. A `max` result reports no `offcuts`. Send those jobs to `heuristic`. The default never changes silently."
         },
         "include": {
           "type": "array",
@@ -3710,7 +3727,8 @@ export const TOOLS: ToolDef[] = [
               "pdf",
               "labelsPdf"
             ]
-          }
+          },
+          "description": "Three kinds of token. NARROWING (`cutPlan`, `offcuts`): omit the field entirely to get both; a present array keeps only the narrowing tokens it lists (an empty array drops both). ADDITIVE EXPORT (`svg`, `csv`, `dxf`): each adds an inline export STRING to the response (`svg` a standalone 2D layout — 2D only, a warning is returned for 1D/wood; `dxf` an R12/AC1009 drawing; `csv` a cut list, RFC 4180 quoted (a part name with a comma or a quote stays one field) and formula-injection-guarded (a name beginning with `=`, `+`, `-`, `@`, TAB or CR is prefixed with an apostrophe so a spreadsheet reads it as text, not a formula — CWE-1236). 2D DATA (`labels`, `planHash`, `pdf`, `labelsPdf`): `labels` adds per-piece label data (`labels[]`, see `Label2D`), `planHash` a 64-hex fingerprint of the plan (the same plan always gives the same hash), `pdf` the cutting-plan PDF and `labelsPdf` the label PDF, both base64-encoded and drawn by the same code as the CutOptim app. These four are 2D only: a 1D or wood request returns a `warnings` entry instead. `pdf` renders at most 500 parts (total quantity); a larger 2D request with `pdf` is a 413 `too_large` with `details.path: \"include\"`. Export and data tokens do not affect narrowing, so `[\"svg\"]` adds svg and — listing no narrowing token — drops cutPlan/offcuts; use `[\"cutPlan\",\"offcuts\",\"svg\"]` to keep everything."
         },
         "matchedSets": {
           "maxItems": 50,
@@ -3791,7 +3809,8 @@ export const TOOLS: ToolDef[] = [
                 }
               }
             }
-          }
+          },
+          "description": "Matched sets (grain matching): groups of parts cut side by side from one piece of board. Send a NON-EMPTY ARRAY of sets (at most 50); members are named by `parts[].id`. Only a non-empty array switches the feature on: absent, `null`, `[]` — and any value that is not an array — is a request without sets, answered exactly as before (no error). With sets the response adds `sheets[].parts[].matchedSet` on every member and a `matchedSets` rollup; `csv` gains `Set` and `Position` columns at the end, `svg` the `matched-sets` frame group, `dxf` the position code on LABELS; `pdf` and `labelsPdf` draw the members as ordinary parts for now (a `warnings` line says so; the set marks are in `sheets[].parts[].matchedSet`, `csv` and `svg`). Engine `max` refuses a non-empty array (400 `details.unsupported`); an empty one is fine. 2D only: the 1D, wood and nest endpoints ignore this field and `parts[].id`."
         }
       }
     },
@@ -3980,7 +3999,8 @@ export const TOOLS: ToolDef[] = [
                 "exclusiveMinimum": 0
               }
             }
-          }
+          },
+          "description": "The lengths to cut, one row per part type (`length`, optional `qty`, `name`, mitred `ends`)."
         },
         "stock": {
           "type": "array",
@@ -4016,7 +4036,8 @@ export const TOOLS: ToolDef[] = [
                 "type": "object"
               }
             }
-          }
+          },
+          "description": "The bar lengths to cut from, one row per length (`length`, optional `qty`, `price`)."
         },
         "options": {
           "type": "object",
@@ -4061,7 +4082,8 @@ export const TOOLS: ToolDef[] = [
               "type": "boolean",
               "default": false
             }
-          }
+          },
+          "description": "The 1D option set is deliberately smaller: there is no `firstCut`, `maxCutStages` or `minimizeRotations`, because none of them means anything on a bar."
         },
         "engine": {
           "type": "string",
@@ -4069,7 +4091,8 @@ export const TOOLS: ToolDef[] = [
             "heuristic",
             "balanced"
           ],
-          "default": "heuristic"
+          "default": "heuristic",
+          "description": "`max` is not offered here: it is a 2D (and, separately, nesting) tier, and `engine: \"max\"` on this path is a **400** before a call is charged. In 1D `balanced` resolves to the same packer as `heuristic` — the linear packer is already a best-of-multiple-strategies search, so there is no separate balanced mode. The value is accepted and echoed back so a single client can send one engine id for both endpoints."
         },
         "include": {
           "type": "array",
@@ -4086,7 +4109,8 @@ export const TOOLS: ToolDef[] = [
               "pdf",
               "labelsPdf"
             ]
-          }
+          },
+          "description": "Three kinds of token. NARROWING (`cutPlan`, `offcuts`): omit the field entirely to get both; a present array keeps only the narrowing tokens it lists (an empty array drops both). ADDITIVE EXPORT (`svg`, `csv`, `dxf`): each adds an inline export STRING to the response (`svg` a standalone 2D layout — 2D only, a warning is returned for 1D/wood; `dxf` an R12/AC1009 drawing; `csv` a cut list, RFC 4180 quoted (a part name with a comma or a quote stays one field) and formula-injection-guarded (a name beginning with `=`, `+`, `-`, `@`, TAB or CR is prefixed with an apostrophe so a spreadsheet reads it as text, not a formula — CWE-1236). 2D DATA (`labels`, `planHash`, `pdf`, `labelsPdf`): `labels` adds per-piece label data (`labels[]`, see `Label2D`), `planHash` a 64-hex fingerprint of the plan (the same plan always gives the same hash), `pdf` the cutting-plan PDF and `labelsPdf` the label PDF, both base64-encoded and drawn by the same code as the CutOptim app. These four are 2D only: a 1D or wood request returns a `warnings` entry instead. `pdf` renders at most 500 parts (total quantity); a larger 2D request with `pdf` is a 413 `too_large` with `details.path: \"include\"`. Export and data tokens do not affect narrowing, so `[\"svg\"]` adds svg and — listing no narrowing token — drops cutPlan/offcuts; use `[\"cutPlan\",\"offcuts\",\"svg\"]` to keep everything."
         }
       }
     },
@@ -4277,7 +4301,8 @@ export const TOOLS: ToolDef[] = [
                 "default": "none"
               }
             }
-          }
+          },
+          "description": "The timber parts to cut, one row per part type: cross-section `sw` × `sh`, `length`, optional `qty`."
         },
         "stock": {
           "type": "array",
@@ -4327,7 +4352,8 @@ export const TOOLS: ToolDef[] = [
                 "type": "object"
               }
             }
-          }
+          },
+          "description": "At most 50 rows. Since every cross-section needs at least one stock row, this is also the practical ceiling on cross-sections in a single job; a wider catalogue should be split into several requests."
         },
         "options": {
           "type": "object",
@@ -4372,7 +4398,8 @@ export const TOOLS: ToolDef[] = [
               "type": "boolean",
               "default": false
             }
-          }
+          },
+          "description": "Identical to `Options1D` — a cross-section changes what fits, not how a bar is cut."
         },
         "engine": {
           "type": "string",
@@ -4380,7 +4407,8 @@ export const TOOLS: ToolDef[] = [
             "heuristic",
             "balanced"
           ],
-          "default": "heuristic"
+          "default": "heuristic",
+          "description": "As in 1D, `max` is not offered here (a **400** before a call is charged). `balanced` resolves to the same packer as `heuristic`: within a section a timber job is a length problem, and free nesting has nothing to offer it. The value is accepted, echoed back, and a warning states which packer actually ran."
         },
         "include": {
           "type": "array",
@@ -4397,7 +4425,8 @@ export const TOOLS: ToolDef[] = [
               "pdf",
               "labelsPdf"
             ]
-          }
+          },
+          "description": "Three kinds of token. NARROWING (`cutPlan`, `offcuts`): omit the field entirely to get both; a present array keeps only the narrowing tokens it lists (an empty array drops both). ADDITIVE EXPORT (`svg`, `csv`, `dxf`): each adds an inline export STRING to the response (`svg` a standalone 2D layout — 2D only, a warning is returned for 1D/wood; `dxf` an R12/AC1009 drawing; `csv` a cut list, RFC 4180 quoted (a part name with a comma or a quote stays one field) and formula-injection-guarded (a name beginning with `=`, `+`, `-`, `@`, TAB or CR is prefixed with an apostrophe so a spreadsheet reads it as text, not a formula — CWE-1236). 2D DATA (`labels`, `planHash`, `pdf`, `labelsPdf`): `labels` adds per-piece label data (`labels[]`, see `Label2D`), `planHash` a 64-hex fingerprint of the plan (the same plan always gives the same hash), `pdf` the cutting-plan PDF and `labelsPdf` the label PDF, both base64-encoded and drawn by the same code as the CutOptim app. These four are 2D only: a 1D or wood request returns a `warnings` entry instead. `pdf` renders at most 500 parts (total quantity); a larger 2D request with `pdf` is a 413 `too_large` with `details.path: \"include\"`. Export and data tokens do not affect narrowing, so `[\"svg\"]` adds svg and — listing no narrowing token — drops cutPlan/offcuts; use `[\"cutPlan\",\"offcuts\",\"svg\"]` to keep everything."
         }
       }
     },
@@ -4606,7 +4635,8 @@ export const TOOLS: ToolDef[] = [
                 "type": "object"
               }
             }
-          }
+          },
+          "description": "One or more parts to nest, one NestPart per row."
         },
         "stock": {
           "type": "array",
@@ -4683,7 +4713,8 @@ export const TOOLS: ToolDef[] = [
                 "type": "object"
               }
             }
-          }
+          },
+          "description": "One or more sheet types, one NestStock per row."
         },
         "options": {
           "type": "object",
@@ -4727,7 +4758,8 @@ export const TOOLS: ToolDef[] = [
               ],
               "default": "box"
             }
-          }
+          },
+          "description": "Solve options. All optional."
         },
         "engine": {
           "type": "string",
@@ -4736,7 +4768,8 @@ export const TOOLS: ToolDef[] = [
             "max",
             "sparrow"
           ],
-          "default": "lbf"
+          "default": "lbf",
+          "description": "`lbf` (default) is single-pass, synchronous and instant. `max` is ASYNCHRONOUS: 202 + poll `GET /v1/jobs/{id}`; it runs `lbf` first, then a time-budgeted search that fills sheets one at a time looking for FEWER sheets, and never returns more than `lbf`, nor a plan that ranks worse (price with `minimizeCost`, otherwise sheet area). It accepts several sheet sizes per material and `respectStock`; a `polygon` sheet or exclusion zones are served by `lbf` inside the job, with a warning. `sparrow` is a deprecated alias of `max`."
         },
         "include": {
           "type": "array",
@@ -4746,7 +4779,8 @@ export const TOOLS: ToolDef[] = [
               "svg",
               "dxf"
             ]
-          }
+          },
+          "description": "Additive inline export of the achieved layout. `svg` returns a self-contained, styled `<svg>` string (one titled band per sheet, parts drawn as filled polygons with holes, exclusion zones hatched); `dxf` returns an R12 document (closed `POLYLINE`/`VERTEX` outlines on STOCK/PARTS/HOLES/ZONES layers, part names on LABELS). Both are unit-agnostic, exactly like the request coordinates. The geometry in `sheets[]` is returned either way."
         }
       }
     },

@@ -15,6 +15,10 @@
   <a href="https://cutoptim.com/dashboard?api=test#api-keys">Get a free test key</a>
 </p>
 
+<p align="center">
+  <a href="https://mcprush.com/to/cutoptim-engine-mcp?ref=badge"><img src="https://mcprush.com/badge/cutoptim-engine-mcp/card.svg" alt="CutOptim Engine MCP server"></a>
+</p>
+
 ---
 
 ## Two ways to connect

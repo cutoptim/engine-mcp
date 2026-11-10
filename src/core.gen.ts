@@ -46,6 +46,13 @@ export const SERVER_INSTRUCTIONS =
   'engine "max" runs asynchronously: the answer is a jobId, poll it with get_job. ' +
   'get_usage shows the calls left this month. Reference: https://cutoptim.com/engine/reference';
 
+/** Shown by MCP clients and registries next to the server name; the same icons as sdks/mcp/server.json. */
+export const SERVER_WEBSITE = 'https://cutoptim.com/engine/reference/guides/mcp';
+export const SERVER_ICONS = [
+  { src: 'https://cutoptim.com/logo-square.png', mimeType: 'image/png', sizes: ['512x512'] },
+  { src: 'https://cutoptim.com/logo-square.svg', mimeType: 'image/svg+xml', sizes: ['any'] },
+];
+
 /** Export strings that are elided from the JSON text block (they stay in structuredContent). */
 const EXPORT_FIELDS = ['svg', 'dxf', 'csv', 'pdf', 'labelsPdf'] as const;
 const MAX_TABLE_ROWS = 25;
@@ -53,7 +60,7 @@ const MAX_TABLE_ROWS = 25;
 export function createCutOptimMcpServer(opts: { tools: ToolDef[]; call: ApiCall; version: string }): Server {
   const byName = new Map(opts.tools.map((t) => [t.name, t]));
   const server = new Server(
-    { name: SERVER_NAME, title: 'CutOptim Engine', version: opts.version },
+    { name: SERVER_NAME, title: 'CutOptim Engine', version: opts.version, websiteUrl: SERVER_WEBSITE, icons: SERVER_ICONS },
     { capabilities: { tools: {} }, instructions: SERVER_INSTRUCTIONS },
   );
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
