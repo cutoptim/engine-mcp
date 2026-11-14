@@ -1,6 +1,6 @@
 {
   "name": "@cutoptim/mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "CutOptim MCP server (stdio): cutting optimization tools for AI assistants — 2D panels, 1D bars, timber and true-shape nesting via the CutOptim Engine API.",
   "license": "MIT",
   "author": "CutOptim <support@cutoptim.com>",

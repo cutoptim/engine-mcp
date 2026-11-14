@@ -2820,6 +2820,16 @@ export const TOOLS: ToolDef[] = [
               "meta": {
                 "type": "object",
                 "description": "Echoed on every sheet cut from this stock row."
+              },
+              "roll": {
+                "type": "boolean",
+                "description": "Marker mode: this row is a ROLL of width `w` and free length (fabric, leather, film, any roll good). Give `w` only — no `h`, `polygon` or `exclusions` — and make it the only stock row. The answer is ONE sheet `w` wide whose `h` is the shortest length found (also `metrics.length`), edge gap included at both ends. Both engines: `lbf` answers synchronously; `max` (async) starts from that marker and spends `options.timeBudgetMs` on a strip search that may shorten it, never lengthen it."
+              },
+              "maxLength": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 200000,
+                "description": "With `roll` only: the longest the marker may be (at most 200000). Parts that do not fit within it are returned in `unplaced` — a roll never becomes a second sheet. Omit it and the length is unbounded up to 200000."
               }
             }
           },
@@ -3103,6 +3113,9 @@ export const TOOLS: ToolDef[] = [
                 },
                 "pierces": {
                   "type": "integer"
+                },
+                "length": {
+                  "type": "number"
                 }
               }
             },
@@ -4763,6 +4776,14 @@ export const TOOLS: ToolDef[] = [
               },
               "meta": {
                 "type": "object"
+              },
+              "roll": {
+                "type": "boolean"
+              },
+              "maxLength": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 200000
               }
             }
           },
@@ -5840,6 +5861,9 @@ export const TOOLS: ToolDef[] = [
                     },
                     "pierces": {
                       "type": "integer"
+                    },
+                    "length": {
+                      "type": "number"
                     }
                   }
                 },
