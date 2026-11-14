@@ -3160,6 +3160,32 @@ export const TOOLS: ToolDef[] = [
                   },
                   "qty": {
                     "type": "integer"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "too_large",
+                      "no_room"
+                    ]
+                  },
+                  "minSheet": {
+                    "type": "object",
+                    "required": [
+                      "w",
+                      "h",
+                      "rotation"
+                    ],
+                    "properties": {
+                      "w": {
+                        "type": "number"
+                      },
+                      "h": {
+                        "type": "number"
+                      },
+                      "rotation": {
+                        "type": "number"
+                      }
+                    }
                   }
                 }
               }
@@ -3230,6 +3256,32 @@ export const TOOLS: ToolDef[] = [
                         },
                         "qty": {
                           "type": "integer"
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "too_large",
+                            "no_room"
+                          ]
+                        },
+                        "minSheet": {
+                          "type": "object",
+                          "required": [
+                            "w",
+                            "h",
+                            "rotation"
+                          ],
+                          "properties": {
+                            "w": {
+                              "type": "number"
+                            },
+                            "h": {
+                              "type": "number"
+                            },
+                            "rotation": {
+                              "type": "number"
+                            }
+                          }
                         }
                       }
                     }
@@ -5845,6 +5897,32 @@ export const TOOLS: ToolDef[] = [
                       },
                       "qty": {
                         "type": "integer"
+                      },
+                      "reason": {
+                        "type": "string",
+                        "enum": [
+                          "too_large",
+                          "no_room"
+                        ]
+                      },
+                      "minSheet": {
+                        "type": "object",
+                        "required": [
+                          "w",
+                          "h",
+                          "rotation"
+                        ],
+                        "properties": {
+                          "w": {
+                            "type": "number"
+                          },
+                          "h": {
+                            "type": "number"
+                          },
+                          "rotation": {
+                            "type": "number"
+                          }
+                        }
                       }
                     }
                   }
@@ -5915,6 +5993,32 @@ export const TOOLS: ToolDef[] = [
                             },
                             "qty": {
                               "type": "integer"
+                            },
+                            "reason": {
+                              "type": "string",
+                              "enum": [
+                                "too_large",
+                                "no_room"
+                              ]
+                            },
+                            "minSheet": {
+                              "type": "object",
+                              "required": [
+                                "w",
+                                "h",
+                                "rotation"
+                              ],
+                              "properties": {
+                                "w": {
+                                  "type": "number"
+                                },
+                                "h": {
+                                  "type": "number"
+                                },
+                                "rotation": {
+                                  "type": "number"
+                                }
+                              }
                             }
                           }
                         }
@@ -6055,6 +6159,48 @@ export const TOOLS: ToolDef[] = [
           "enum": [
             "tenant"
           ]
+        },
+        "trial": {
+          "type": "object",
+          "required": [
+            "endsAt",
+            "callsLimit",
+            "callsUsed",
+            "callsRemaining",
+            "maxJobsLimit",
+            "maxJobsUsed",
+            "maxJobsRemaining"
+          ],
+          "properties": {
+            "endsAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "callsLimit": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "callsUsed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "callsRemaining": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxJobsLimit": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxJobsUsed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxJobsRemaining": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
         }
       }
     },
